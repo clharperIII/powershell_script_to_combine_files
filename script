@@ -1,0 +1,26 @@
+# Define parameters for folder path and output file
+param (
+    [string]$folderPath = "C:\Path\To\Your\Folder",
+    [string]$outputFile = "C:\Path\To\Your\OutputFile.csv"
+)
+
+# Get all CSV files in the folder
+$csvFiles = Get-ChildItem -Path $folderPath -Filter "*.csv"
+
+# Ensure there are CSV files to merge
+if ($csvFiles.Count -eq 0) {
+    Write-Host "No CSV files found in $folderPath"
+    exit
+}
+
+# Read header from the first file and write it to the output file
+$header = Get-Content $csvFiles[0].FullName | Select-Object -First 1
+$header | Set-Content -Encoding UTF8 $outputFile
+
+# Loop through each file, skipping the header, and append the content
+ForEach ($file in $csvFiles) {
+    Write-Host "Merging $($file.Name)..."
+    Get-Content $file.FullName | Select-Object -Skip 1 | Add-Content -Encoding UTF8 $outputFile
+}
+
+Write-Host "Merge complete! All CSVs have been combined into $outputFile"
